@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Jotter & Code</title>
+    <title>Gemini Workspace</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Gamja+Flower&family=Gowun+Batang&family=Gowun+Dodum&family=Gugiyeon&family=Hi+Melody&family=Jua&family=Nanum+Brush+Script&family=Nanum+Gothic&family=Nanum+Gothic+Coding&family=Nanum+Myeongjo&family=Nanum+Pen+Script&family=Noto+Sans+KR&family=Poor+Story&family=Single+Day&family=Song+Myung&family=Stylish&family=Sunflower&family=Yeon+Sung&display=swap" rel="stylesheet">
@@ -23,7 +23,7 @@
             --header-bg: rgba(253, 251, 247, 0.85);
             --border-color: rgba(0,0,0,0.06);
             --btn-hover: rgba(108, 92, 231, 0.08);
-            --editor-font: 'Noto Sans KR', sans-serif; /* 기본 폰트 */
+            --editor-font: 'Noto Sans KR', sans-serif;
         }
 
         body.dark-mode {
@@ -35,9 +35,9 @@
             --btn-hover: rgba(255, 255, 255, 0.1);
         }
 
-        /* 코딩 모드 전용 변수 */
+        /* 코딩 모드일 때 강제 스타일 */
         body.coding-mode {
-            --editor-font: 'Nanum Gothic Coding', 'D2Coding', monospace !important;
+            --editor-font: 'Nanum Gothic Coding', monospace !important;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -59,7 +59,6 @@
         }
         .animate-entry { animation: slideUpFade 1.0s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 
-        /* 헤더 */
         header {
             height: 60px;
             position: sticky; top: 0; left: 0; right: 0;
@@ -83,13 +82,13 @@
             transition: 0.2s;
         }
         button:hover { background: var(--btn-hover); color: var(--accent-color); transform: scale(1.05); }
-        
+        select:disabled { opacity: 0.5; cursor: not-allowed; } /* 코딩모드 때 폰트변경 잠금 */
+
         select { 
             font-size: 0.9rem; border: 1px solid var(--border-color); 
             padding-right: 5px; width: 80px; height: 36px; font-family: inherit;
         }
 
-        /* 메인 에디터 */
         main {
             width: 100%; max-width: 900px;
             margin: 0 auto;
@@ -112,7 +111,7 @@
         #saveStatus { font-size: 0.8rem; color: #888; margin-right: 10px; opacity: 0; transition: opacity 0.5s; }
         #saveStatus.show { opacity: 1; }
 
-        /* 팝업 메뉴 */
+        /* 메뉴 팝업 */
         .menu-popup {
             position: absolute; top: 65px; right: 15px;
             background: var(--bg-color);
@@ -125,24 +124,32 @@
             animation: popOpen 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         @keyframes popOpen { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        
         .menu-popup.active { display: flex; }
-        .menu-item { justify-content: flex-start; padding: 14px 20px; font-size: 0.95rem; width: 100%; border-radius: 0; border-bottom: 1px solid var(--border-color); }
-        .menu-item:last-child { border-bottom: none; }
-        .menu-item i { width: 25px; color: var(--accent-color); text-align: center; margin-right: 10px; }
         
-        /* 토글 스위치 (UI 수정됨) */
+        .menu-item { justify-content: flex-start; padding: 14px 20px; font-size: 0.95rem; width: 100%; border-radius: 0; border-bottom: 1px solid var(--border-color); }
+        
+        /* 토글 스위치 CSS (확실한 ON/OFF 구분) */
         .toggle-container { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         
-        /* 기본: 꺼짐 (회색, 왼쪽) */
-        .toggle-switch { position: relative; width: 40px; height: 22px; background: #dcdcdc; border-radius: 20px; transition: 0.3s ease; }
-        .toggle-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: 0.3s cubic-bezier(0.4, 0.0, 0.2, 1); box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        .toggle-switch { 
+            position: relative; width: 40px; height: 22px; 
+            background: #dcdcdc; /* 기본 꺼짐 색상 */
+            border-radius: 20px; 
+            transition: background 0.3s ease; 
+        }
+        .toggle-switch::after { 
+            content: ''; position: absolute; top: 3px; left: 3px; 
+            width: 16px; height: 16px; 
+            background: white; border-radius: 50%; 
+            transition: left 0.3s cubic-bezier(0.4, 0.0, 0.2, 1); 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2); 
+        }
         
-        /* 켜짐 상태 (보라색, 오른쪽) */
+        /* 부모 버튼에 active 클래스가 있을 때만 켜짐 상태 */
         .menu-item.active .toggle-switch { background: var(--accent-color); }
         .menu-item.active .toggle-switch::after { left: 21px; }
 
-        /* Markdown & Highlight.js */
+        /* Markdown 스타일 */
         #preview h1 { border-bottom: 2px solid var(--border-color); padding-bottom: 10px; }
         #preview code { font-family: 'Nanum Gothic Coding', monospace; background: rgba(128,128,128,0.15); padding: 2px 5px; border-radius: 4px; color: #e83e8c; }
         #preview pre { background: #1e1e1e; padding: 15px; border-radius: 8px; overflow-x: auto; }
@@ -188,11 +195,12 @@
     </div>
 
     <main class="animate-entry">
-        <textarea id="editor" placeholder="# 환영합니다! 👋&#13;&#10;&#13;&#10;메뉴(≡)에서 '코딩 모드'를 켜보세요.&#13;&#10;눈 모양(👁️) 아이콘을 누르면 코드가 VS Code처럼 보입니다!&#13;&#10;&#13;&#10;```javascript&#13;&#10;function hello() {&#13;&#10;  console.log('Hello World!');&#13;&#10;}&#13;&#10;```"></textarea>
+        <textarea id="editor" placeholder="# 테스트를 해보세요!&#13;&#10;&#13;&#10;1. 라이트 모드에서 글을 쓰다가...&#13;&#10;2. 코딩 모드를 켜보세요! (다크+코딩폰트 변신)&#13;&#10;3. 다시 끄면? (원래대로 돌아옵니다! ✨)"></textarea>
         <div id="preview"></div>
     </main>
 
     <script>
+        // 요소 가져오기
         const editor = document.getElementById('editor');
         const preview = document.getElementById('preview');
         const themeBtn = document.getElementById('themeBtn');
@@ -203,7 +211,12 @@
         const menuPopup = document.getElementById('menuPopup');
         const codingModeBtn = document.getElementById('codingModeBtn');
 
-        // --- 자동 높이 조절 ---
+        // --- 1. 상태 저장 변수 (여기에 원래 상태를 백업함) ---
+        let savedIsDark = false;
+        let savedFontValue = "'Noto Sans KR', sans-serif";
+        let isCodingMode = false;
+
+        // --- 2. 자동 높이 ---
         function autoResize() {
             editor.style.height = 'auto';
             editor.style.height = editor.scrollHeight + 'px';
@@ -211,7 +224,7 @@
         editor.addEventListener('input', autoResize);
         window.addEventListener('resize', autoResize);
 
-        // --- Markdown 설정 ---
+        // --- 3. 마크다운 & 코딩 모드 로직 (핵심 수정됨) ---
         marked.setOptions({
             highlight: function(code, lang) {
                 const language = highlight.getLanguage(lang) ? lang : 'plaintext';
@@ -220,71 +233,85 @@
             langPrefix: 'hljs language-'
         });
 
-        // --- 코딩 모드 로직 (수정됨: 상태 기억) ---
-        let isCodingMode = false;
-        
-        // 원래 상태를 기억할 변수들
-        let previousThemeWasDark = false;
-        let previousFont = "'Noto Sans KR', sans-serif";
-
         codingModeBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            isCodingMode = !isCodingMode;
+            e.stopPropagation(); // 메뉴 닫힘 방지
             
-            if (isCodingMode) {
-                // [켜기] 1. 현재 상태 저장
-                previousThemeWasDark = document.body.classList.contains('dark-mode');
-                previousFont = fontSelector.value;
+            isCodingMode = !isCodingMode; // 상태 반전
 
-                // 2. 코딩 모드 적용 (다크모드 강제 + 코딩폰트)
+            if (isCodingMode) {
+                // [ON 켜기] 
+                // 1. 현재 상태를 백업한다 (스냅샷)
+                savedIsDark = document.body.classList.contains('dark-mode');
+                savedFontValue = fontSelector.value;
+
+                // 2. 코딩 모드 적용 (강제 다크모드 + 코딩폰트)
                 document.body.classList.add('coding-mode');
-                if (!previousThemeWasDark) {
-                    document.body.classList.add('dark-mode'); // 다크모드 없었으면 켜줌
-                }
+                document.body.classList.add('dark-mode');
                 
-                codingModeBtn.classList.add('active'); // 스위치 UI ON
-                themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>'; // 아이콘 변경
+                // 3. UI 업데이트
+                codingModeBtn.classList.add('active'); // 스위치 켜짐 (보라색)
+                themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
+                fontSelector.value = "'Nanum Gothic Coding', monospace"; // 선택상자도 코딩으로 변경
+                fontSelector.disabled = true; // 헷갈리지 않게 변경 막기
                 
             } else {
-                // [끄기] 1. 코딩 모드 해제
+                // [OFF 끄기]
+                // 1. 코딩 모드 클래스 제거
                 document.body.classList.remove('coding-mode');
-                codingModeBtn.classList.remove('active'); // 스위치 UI OFF
+                codingModeBtn.classList.remove('active'); // 스위치 꺼짐 (회색)
                 
-                // 2. 원래 테마로 복구
-                if (!previousThemeWasDark) {
-                    document.body.classList.remove('dark-mode'); // 원래 라이트모드였다면 다크모드 끔
-                    themeBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
-                } else {
-                    // 원래 다크모드였으면 그대로 둠 (아이콘도 유지)
+                // 2. 원래 배경색 복구
+                if (savedIsDark) {
+                    document.body.classList.add('dark-mode');
                     themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    themeBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
                 }
 
-                // 3. 원래 폰트로 복구 (CSS 변수 + 선택상자 UI 동기화)
-                document.documentElement.style.setProperty('--editor-font', previousFont);
-                fontSelector.value = previousFont;
+                // 3. 원래 폰트 복구
+                fontSelector.disabled = false; // 선택상자 풀기
+                fontSelector.value = savedFontValue; // 원래 값으로 되돌리기
+                // CSS 변수도 원래 값으로 적용
+                document.documentElement.style.setProperty('--editor-font', savedFontValue);
             }
-            
-            autoResize(); // 폰트 변경 시 높이 재조정
+            autoResize();
         });
 
-        // --- 렌더링 ---
+        // --- 4. 일반 테마/폰트 변경 ---
+        themeBtn.addEventListener('click', () => {
+            // 코딩 모드일 땐 테마 변경 막거나, 경고를 줄 수도 있지만 여기선 그냥 둠
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            themeBtn.innerHTML = isDark ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+        });
+
+        fontSelector.addEventListener('change', (e) => {
+            document.documentElement.style.setProperty('--editor-font', e.target.value);
+            autoResize();
+        });
+
+        // --- 5. 렌더링 ---
         function renderContent() {
             let rawText = editor.value;
             const mathBlocks = [];
+            // 수식 보호
             const protectedText = rawText.replace(/(\$\$[\s\S]*?\$\$)|(\$[^$\n]*?\$)/g, (match) => {
                 mathBlocks.push(match);
                 return `__MATH_BLOCK_${mathBlocks.length - 1}__`;
             });
             let html = marked.parse(protectedText);
+            // 수식 복구
             html = html.replace(/__MATH_BLOCK_(\d+)__/g, (match, index) => mathBlocks[index]);
             preview.innerHTML = html;
+            // 렌더링
             renderMathInElement(preview, {
                 delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}],
                 throwOnError: false
             });
         }
 
-        // --- 뷰어 토글 ---
+        // 뷰어 토글
         let isPreview = false;
         viewToggleBtn.addEventListener('click', () => {
             isPreview = !isPreview;
@@ -302,7 +329,7 @@
             }
         });
 
-        // --- 자동 저장 ---
+        // --- 6. 기타 (저장, 공유, 팝업) ---
         let saveTimer;
         editor.addEventListener('input', () => {
             saveStatus.classList.remove('show');
@@ -318,27 +345,10 @@
             if (saved) { editor.value = saved; autoResize(); }
         };
 
-        // --- UI 이벤트 ---
-        themeBtn.addEventListener('click', () => {
-            // 코딩 모드가 아닐 때만 자유롭게 변경 가능 (또는 코딩모드여도 변경 허용하되 상태 로직 주의)
-            // 여기선 단순하게 그냥 토글
-            document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            themeBtn.innerHTML = isDark ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
-            
-            // 만약 코딩모드가 꺼져있을때 테마를 바꿨다면, '이전 상태' 변수 업데이트는 안함
-            // (코딩모드 켰을때 당시의 상태를 기억하는게 맞음)
-        });
-
-        fontSelector.addEventListener('change', (e) => {
-            document.documentElement.style.setProperty('--editor-font', e.target.value);
-        });
-
         menuBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             menuPopup.classList.toggle('active');
         });
-
         document.addEventListener('click', (e) => {
             if (!menuPopup.contains(e.target) && e.target !== menuBtn && !codingModeBtn.contains(e.target)) {
                 menuPopup.classList.remove('active');
@@ -370,7 +380,7 @@
             a.download = `GeminiNote.${ext}`;
             a.click();
         }
-
+        
         document.getElementById('shareBtn').addEventListener('click', async () => {
             if (navigator.share) {
                 await navigator.share({ title: 'Gemini Note', text: editor.value });
