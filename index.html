@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>My Workspace</title>
+    <title>Jotter & Code</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Gamja+Flower&family=Gowun+Batang&family=Gowun+Dodum&family=Gugiyeon&family=Hi+Melody&family=Jua&family=Nanum+Brush+Script&family=Nanum+Gothic&family=Nanum+Gothic+Coding&family=Nanum+Myeongjo&family=Nanum+Pen+Script&family=Noto+Sans+KR&family=Poor+Story&family=Single+Day&family=Song+Myung&family=Stylish&family=Sunflower&family=Yeon+Sung&display=swap" rel="stylesheet">
@@ -12,38 +12,57 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/vs2015.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
 
     <style>
         :root {
             --bg-color: #fdfbf7;
             --text-color: #2c3e50;
             --accent-color: #6c5ce7;
-            --header-bg: rgba(253, 251, 247, 0.95);
+            --header-bg: rgba(253, 251, 247, 0.85);
             --border-color: rgba(0,0,0,0.06);
             --btn-hover: rgba(108, 92, 231, 0.08);
+            --editor-font: 'Noto Sans KR', sans-serif;
         }
 
         body.dark-mode {
-            --bg-color: #181818;
+            --bg-color: #1e1e1e; /* VS Code 배경색 느낌 */
             --text-color: #dcdcdc;
             --accent-color: #a29bfe;
-            --header-bg: rgba(24, 24, 24, 0.95);
+            --header-bg: rgba(30, 30, 30, 0.85);
             --border-color: rgba(255,255,255,0.1);
             --btn-hover: rgba(255, 255, 255, 0.1);
+        }
+
+        /* 코딩 모드 변수 */
+        body.coding-mode {
+            --editor-font: 'Nanum Gothic Coding', 'D2Coding', monospace;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
         body { 
             margin: 0; padding: 0;
-            font-family: 'Noto Sans KR', sans-serif; 
+            font-family: var(--editor-font); /* 폰트 변수 적용 */
             background: var(--bg-color); 
             color: var(--text-color); 
-            min-height: 100vh; /* 스크롤 개선의 핵심 */
-            transition: background 0.3s ease, color 0.3s ease;
+            min-height: 100vh;
+            transition: background 0.4s ease, color 0.4s ease;
+            overflow-x: hidden;
         }
 
-        /* 헤더: 상단 고정 (Sticky) */
+        /* --- 1. 다이내믹 애니메이션 --- */
+        @keyframes slideUpFade {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-entry {
+            animation: slideUpFade 1.0s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        /* 헤더 */
         header {
             height: 60px;
             position: sticky; top: 0; left: 0; right: 0;
@@ -52,7 +71,9 @@
             display: flex; align-items: center; justify-content: space-between;
             padding: 0 15px;
             z-index: 1000;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(10px);
+            /* 헤더도 살짝 늦게 뜨게 */
+            animation: slideUpFade 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
         .brand { font-family: 'Gowun Batang', serif; font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
@@ -65,34 +86,35 @@
             font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
             transition: 0.2s;
         }
-        button:hover { background: var(--btn-hover); color: var(--accent-color); }
+        button:hover { background: var(--btn-hover); color: var(--accent-color); transform: scale(1.05); }
         
         select { 
             font-size: 0.9rem; border: 1px solid var(--border-color); 
-            padding-right: 5px; width: 80px; height: 36px;
+            padding-right: 5px; width: 80px; height: 36px; font-family: inherit;
         }
 
-        /* 메인 영역: 높이 제한 해제 (모바일 스크롤 해결) */
+        /* 메인 영역 */
         main {
-            width: 100%; max-width: 800px;
+            width: 100%; max-width: 900px;
             margin: 0 auto;
-            padding: 30px 20px 100px 20px; /* 하단 여백 충분히 */
+            padding: 40px 20px 100px 20px;
             min-height: calc(100vh - 60px);
+            opacity: 0; /* 애니메이션 시작 전 숨김 */
+            animation-delay: 0.2s; /* 헤더보다 살짝 늦게 */
         }
 
-        /* 에디터: 높이가 내용에 따라 자동으로 늘어남 */
         #editor {
             width: 100%;
             min-height: 60vh;
             border: none; outline: none; resize: none;
             background: transparent; color: var(--text-color);
-            font-size: 18px; line-height: 1.8;
-            overflow-y: hidden; /* 스크롤바 숨김 (자동 높이 조절 위함) */
+            font-size: 18px; line-height: 1.7;
+            overflow-y: hidden;
+            font-family: var(--editor-font); /* 코딩모드 시 폰트 변경 */
         }
 
-        #preview { display: none; padding-bottom: 50px; }
+        #preview { display: none; padding-bottom: 50px; font-family: var(--editor-font); }
         
-        /* 저장 상태 표시 */
         #saveStatus { font-size: 0.8rem; color: #888; margin-right: 10px; opacity: 0; transition: opacity 0.5s; }
         #saveStatus.show { opacity: 1; }
 
@@ -101,25 +123,34 @@
             position: absolute; top: 65px; right: 15px;
             background: var(--bg-color);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            display: none; flex-direction: column; width: 200px; z-index: 2000;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            display: none; flex-direction: column; width: 220px; z-index: 2000;
             overflow: hidden;
+            transform-origin: top right;
+            animation: popOpen 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .menu-popup.active { display: flex; }
-        .menu-item { justify-content: flex-start; padding: 12px 15px; font-size: 0.95rem; width: 100%; border-radius: 0; }
-        .menu-item i { width: 25px; color: var(--accent-color); text-align: center; }
-        .menu-item:active { background: var(--btn-hover); }
-
-        /* Markdown & LaTeX 스타일 */
-        #preview h1, #preview h2 { border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-top: 1.5em; }
-        #preview blockquote { border-left: 4px solid var(--accent-color); margin: 1em 0; padding-left: 15px; color: #777; }
-        #preview img { max-width: 100%; border-radius: 8px; }
-        #preview code { background: rgba(100,100,100,0.1); padding: 2px 4px; border-radius: 4px; color: #d63031; font-family: monospace; }
-        #preview pre { background: #2d3436; color: #fff; padding: 15px; border-radius: 8px; overflow-x: auto; }
-        #preview pre code { color: inherit; background: none; }
+        @keyframes popOpen { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         
-        /* 수식 (LaTeX) 크기 조정 */
+        .menu-popup.active { display: flex; }
+        .menu-item { justify-content: flex-start; padding: 14px 20px; font-size: 0.95rem; width: 100%; border-radius: 0; border-bottom: 1px solid var(--border-color); }
+        .menu-item:last-child { border-bottom: none; }
+        .menu-item i { width: 25px; color: var(--accent-color); text-align: center; margin-right: 10px; }
+        
+        /* 토글 스위치 스타일 */
+        .toggle-container { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .toggle-switch { position: relative; width: 40px; height: 20px; background: #ccc; border-radius: 20px; transition: 0.3s; }
+        .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: 0.3s; }
+        .active .toggle-switch { background: var(--accent-color); }
+        .active .toggle-switch::after { left: 22px; }
+
+        /* Markdown & Highlight.js 스타일 */
+        #preview h1 { border-bottom: 2px solid var(--border-color); padding-bottom: 10px; }
+        #preview code { font-family: 'Nanum Gothic Coding', monospace; background: rgba(128,128,128,0.15); padding: 2px 5px; border-radius: 4px; color: #e83e8c; }
+        #preview pre { background: #1e1e1e; padding: 15px; border-radius: 8px; overflow-x: auto; position: relative; }
+        #preview pre code { background: transparent; color: #f8f8f2; padding: 0; } /* VS Code 스타일 */
+        
+        /* 수식 크기 */
         .katex { font-size: 1.1em; }
     </style>
 </head>
@@ -127,7 +158,7 @@
 
     <header>
         <div class="brand">
-            <i class="fa-solid fa-book-open"></i> Jotter 
+            <i class="fa-solid fa-code"></i> Gemini Note 
             <span id="saveStatus"><i class="fa-solid fa-check"></i> 저장됨</span>
         </div>
         <div class="tools">
@@ -135,9 +166,6 @@
                 <option value="'Noto Sans KR', sans-serif">기본</option>
                 <option value="'Gowun Batang', serif">고운바탕</option>
                 <option value="'Nanum Myeongjo', serif">명조</option>
-                <option value="'Song Myung', serif">송명</option>
-                <option value="'Gamja Flower', cursive">감자꽃</option>
-                <option value="'Nanum Pen Script', cursive">나눔펜</option>
                 <option value="'Nanum Gothic Coding', monospace">코딩</option>
             </select>
             <button id="themeBtn"><i class="fa-solid fa-moon"></i></button>
@@ -148,16 +176,23 @@
     </header>
 
     <div class="menu-popup" id="menuPopup">
+        <button class="menu-item" id="codingModeBtn">
+            <div class="toggle-container">
+                <span><i class="fa-solid fa-terminal"></i> 코딩 모드</span>
+                <div class="toggle-switch"></div>
+            </div>
+        </button>
+
         <button class="menu-item" onclick="document.getElementById('fileInput').click()"><i class="fa-regular fa-folder-open"></i> 파일 열기</button>
-        <input type="file" id="fileInput" style="display: none;" accept=".txt,.md,.html,.js">
+        <input type="file" id="fileInput" style="display: none;" accept=".txt,.md,.html,.js,.py,.c">
+        
         <button class="menu-item" onclick="exportFile('md')"><i class="fa-brands fa-markdown"></i> .md 저장</button>
         <button class="menu-item" onclick="exportFile('html')"><i class="fa-brands fa-html5"></i> .html 저장</button>
-        <button class="menu-item" onclick="exportFile('txt')"><i class="fa-regular fa-file-lines"></i> .txt 저장</button>
         <button class="menu-item" onclick="location.reload()"><i class="fa-solid fa-rotate-right"></i> 새로고침</button>
     </div>
 
-    <main>
-        <textarea id="editor" placeholder="글을 작성하세요...&#13;&#10;&#13;&#10;# 수식 사용법&#13;&#10;이제 백슬래시(\)가 잘 먹혀요!&#13;&#10;예시: $\pi r^2$ 또는 $$ \int_0^\infty x dx $$"></textarea>
+    <main class="animate-entry">
+        <textarea id="editor" placeholder="# 환영합니다! 👋&#13;&#10;&#13;&#10;메뉴(≡)에서 '코딩 모드'를 켜보세요.&#13;&#10;눈 모양(👁️) 아이콘을 누르면 코드가 VS Code처럼 보입니다!&#13;&#10;&#13;&#10;```javascript&#13;&#10;function hello() {&#13;&#10;  console.log('Hello World!');&#13;&#10;}&#13;&#10;```"></textarea>
         <div id="preview"></div>
     </main>
 
@@ -170,8 +205,9 @@
         const saveStatus = document.getElementById('saveStatus');
         const menuBtn = document.getElementById('menuBtn');
         const menuPopup = document.getElementById('menuPopup');
+        const codingModeBtn = document.getElementById('codingModeBtn');
 
-        // --- 1. 자동 높이 조절 (모바일 스크롤 해결) ---
+        // --- 1. 자동 높이 조절 ---
         function autoResize() {
             editor.style.height = 'auto';
             editor.style.height = editor.scrollHeight + 'px';
@@ -179,49 +215,57 @@
         editor.addEventListener('input', autoResize);
         window.addEventListener('resize', autoResize);
 
-        // --- 2. 자동 저장 (Auto Save) ---
-        let saveTimer;
-        editor.addEventListener('input', () => {
-            saveStatus.classList.remove('show'); // 타이핑 중엔 숨김
-            clearTimeout(saveTimer);
-            saveTimer = setTimeout(() => {
-                localStorage.setItem('myJotterData', editor.value);
-                saveStatus.classList.add('show'); // 저장 완료 표시
-                // 날짜 업데이트
-            }, 500); // 0.5초 딜레이
+        // --- 2. Markdown + Highlight.js 설정 ---
+        marked.setOptions({
+            highlight: function(code, lang) {
+                const language = highlight.getLanguage(lang) ? lang : 'plaintext';
+                return highlight.highlight(code, { language }).value;
+            },
+            langPrefix: 'hljs language-'
         });
 
-        window.onload = () => {
-            const saved = localStorage.getItem('myJotterData');
-            if (saved) {
-                editor.value = saved;
-                autoResize(); // 불러온 후 높이 조절
+        // --- 3. 코딩 모드 (핵심 기능!) ---
+        let isCodingMode = false;
+        codingModeBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // 메뉴 닫힘 방지
+            isCodingMode = !isCodingMode;
+            
+            const toggleSwitch = codingModeBtn.querySelector('.toggle-switch');
+            
+            if (isCodingMode) {
+                document.body.classList.add('coding-mode');
+                document.body.classList.add('dark-mode'); // 코딩은 다크모드가 국룰
+                codingModeBtn.classList.add('active');
+                themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
+            } else {
+                document.body.classList.remove('coding-mode');
+                codingModeBtn.classList.remove('active');
             }
-        };
+            autoResize(); // 폰트 바뀌면 높이 달라지므로 재조정
+        });
 
-        // --- 3. 수식 보호 렌더링 (LaTeX Fix) ---
-        // Markdown 파서가 수식의 백슬래시(\)를 잡아먹지 않게 보호하는 로직
+        // --- 4. 렌더링 (수식 보호 + 하이라이팅) ---
         function renderContent() {
             let rawText = editor.value;
-
-            // 1단계: 수식 블록($...$ 등)을 임시 토큰으로 교체하여 Markdown 파싱 방지
+            
+            // 수식 보호 ($$ ... $$)
             const mathBlocks = [];
             const protectedText = rawText.replace(/(\$\$[\s\S]*?\$\$)|(\$[^$\n]*?\$)/g, (match) => {
-                mathBlocks.push(match); // 수식 저장
-                return `__MATH_BLOCK_${mathBlocks.length - 1}__`; // 토큰으로 교체
+                mathBlocks.push(match);
+                return `__MATH_BLOCK_${mathBlocks.length - 1}__`;
             });
 
-            // 2단계: Markdown 변환
+            // 마크다운 변환 (여기서 Highlight.js 자동 작동)
             let html = marked.parse(protectedText);
 
-            // 3단계: 토큰을 원래 수식으로 복구
+            // 수식 복구
             html = html.replace(/__MATH_BLOCK_(\d+)__/g, (match, index) => {
                 return mathBlocks[index];
             });
 
             preview.innerHTML = html;
 
-            // 4단계: KaTeX 렌더링 실행
+            // 수식 렌더링 (KaTeX)
             renderMathInElement(preview, {
                 delimiters: [
                     {left: "$$", right: "$$", display: true},
@@ -231,7 +275,7 @@
             });
         }
 
-        // --- 4. 모드 전환 ---
+        // --- 5. 뷰어 모드 전환 ---
         let isPreview = false;
         viewToggleBtn.addEventListener('click', () => {
             isPreview = !isPreview;
@@ -239,24 +283,40 @@
                 editor.style.display = 'none';
                 preview.style.display = 'block';
                 viewToggleBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
-                renderContent(); // 렌더링 실행
+                renderContent(); 
             } else {
                 preview.style.display = 'none';
                 editor.style.display = 'block';
                 viewToggleBtn.innerHTML = '<i class="fa-solid fa-eye"></i>';
-                autoResize(); // 에디터 돌아올 때 높이 재조정
+                autoResize();
+                editor.focus(); // 에디터로 돌아오면 포커스
             }
         });
 
-        // --- 5. 기타 기능들 ---
+        // --- 6. 자동 저장 ---
+        let saveTimer;
+        editor.addEventListener('input', () => {
+            saveStatus.classList.remove('show');
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(() => {
+                localStorage.setItem('geminiNoteData', editor.value);
+                saveStatus.classList.add('show');
+            }, 500);
+        });
+
+        window.onload = () => {
+            const saved = localStorage.getItem('geminiNoteData');
+            if (saved) { editor.value = saved; autoResize(); }
+        };
+
+        // --- 기타 UI 이벤트 ---
         themeBtn.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
             themeBtn.innerHTML = document.body.classList.contains('dark-mode') ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
         });
 
         fontSelector.addEventListener('change', (e) => {
-            editor.style.fontFamily = e.target.value;
-            preview.style.fontFamily = e.target.value;
+            document.documentElement.style.setProperty('--editor-font', e.target.value);
         });
 
         menuBtn.addEventListener('click', (e) => {
@@ -265,7 +325,9 @@
         });
 
         document.addEventListener('click', (e) => {
-            if (!menuPopup.contains(e.target) && e.target !== menuBtn) menuPopup.classList.remove('active');
+            if (!menuPopup.contains(e.target) && e.target !== menuBtn && !codingModeBtn.contains(e.target)) {
+                menuPopup.classList.remove('active');
+            }
         });
 
         // 파일 열기
@@ -281,30 +343,28 @@
             reader.readAsText(file);
         });
 
-        // 파일 내보내기
+        // 내보내기
         window.exportFile = function(ext) {
             let content = editor.value;
             if (ext === 'html') {
-                // HTML 내보내기 시 스타일 포함
-                renderContent(); // 미리보기 갱신
-                content = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>My Note</title></head><body>${preview.innerHTML}</body></html>`;
+                renderContent();
+                content = `<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/vs2015.min.css"><title>Exported Note</title></head><body>${preview.innerHTML}</body></html>`;
             }
             const blob = new Blob([content], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `note_${new Date().getTime()}.${ext}`;
+            a.download = `GeminiNote.${ext}`;
             a.click();
-            menuPopup.classList.remove('active');
         }
-        
+
         // 공유
         document.getElementById('shareBtn').addEventListener('click', async () => {
             if (navigator.share) {
-                await navigator.share({ title: 'Jotter Note', text: editor.value });
+                await navigator.share({ title: 'Gemini Note', text: editor.value });
             } else {
                 navigator.clipboard.writeText(editor.value);
-                alert('복사되었습니다!');
+                alert('클립보드에 복사되었습니다! ✨');
             }
         });
 
