@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gemini Workspace</title>
+    <title>Private Workspace</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Gamja+Flower&family=Gowun+Batang&family=Gowun+Dodum&family=Gugiyeon&family=Hi+Melody&family=Jua&family=Nanum+Brush+Script&family=Nanum+Gothic&family=Nanum+Gothic+Coding&family=Nanum+Myeongjo&family=Nanum+Pen+Script&family=Noto+Sans+KR&family=Poor+Story&family=Single+Day&family=Song+Myung&family=Stylish&family=Sunflower&family=Yeon+Sung&display=swap" rel="stylesheet">
@@ -23,7 +23,7 @@
             --header-bg: rgba(253, 251, 247, 0.85);
             --border-color: rgba(0,0,0,0.06);
             --btn-hover: rgba(108, 92, 231, 0.08);
-            --editor-font: 'Noto Sans KR', sans-serif; /* 기본값 */
+            --editor-font: 'Noto Sans KR', sans-serif;
         }
 
         body.dark-mode {
@@ -35,7 +35,6 @@
             --btn-hover: rgba(255, 255, 255, 0.1);
         }
 
-        /* 코딩 모드 전용 클래스 (우선순위 높임) */
         body.coding-mode {
             --editor-font: 'Nanum Gothic Coding', monospace !important;
         }
@@ -52,18 +51,53 @@
             overflow-x: hidden;
         }
 
+        /* --- 잠금 화면 (Lock Screen) --- */
+        #lockScreen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #1e1e1e; /* 보안 느낌 나는 어두운 배경 */
+            color: white;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999; /* 최상단 */
+            transition: opacity 0.5s ease, visibility 0.5s;
+        }
+        #lockScreen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        
+        .lock-icon { font-size: 3rem; color: #a29bfe; margin-bottom: 20px; animation: float 3s ease-in-out infinite; }
+        .lock-msg { font-size: 1.2rem; margin-bottom: 30px; font-family: 'Gowun Batang', serif; text-align: center; }
+        
+        .password-input-container { display: flex; gap: 10px; }
+        #passwordInput {
+            padding: 10px 15px; font-size: 1rem; border-radius: 8px; border: 1px solid #444;
+            background: #2d2d2d; color: white; outline: none; width: 200px; text-align: center;
+            font-family: monospace; letter-spacing: 3px;
+        }
+        #passwordInput:focus { border-color: #a29bfe; box-shadow: 0 0 10px rgba(162, 155, 254, 0.3); }
+        
+        #unlockBtn {
+            background: #a29bfe; color: #1e1e1e; font-weight: bold;
+            padding: 10px 20px; border-radius: 8px; cursor: pointer;
+        }
+        #unlockBtn:hover { background: #6c5ce7; color: white; }
+
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .shake { animation: shake 0.3s ease-in-out; border-color: #ff7675 !important; }
+
+        /* --- 애니메이션 (입장 효과) --- */
         @keyframes slideUpFade {
             0% { opacity: 0; transform: translateY(30px); }
             100% { opacity: 1; transform: translateY(0); }
         }
-        .animate-entry { animation: slideUpFade 1.0s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        /* 잠금 해제 전에는 숨김 처리 */
+        .content-wrapper { opacity: 0; } 
+        .content-wrapper.unlocked { animation: slideUpFade 1.0s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 
+        /* 헤더 */
         header {
             height: 60px; position: sticky; top: 0; left: 0; right: 0;
             background: var(--header-bg); border-bottom: 1px solid var(--border-color);
             display: flex; align-items: center; justify-content: space-between;
             padding: 0 15px; z-index: 1000; backdrop-filter: blur(10px);
-            animation: slideUpFade 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
         .brand { font-family: 'Gowun Batang', serif; font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
@@ -78,16 +112,11 @@
         }
         button:hover { background: var(--btn-hover); color: var(--accent-color); transform: scale(1.05); }
         select:disabled { opacity: 0.5; pointer-events: none; }
-
-        select { 
-            font-size: 0.9rem; border: 1px solid var(--border-color); 
-            padding-right: 5px; width: 80px; height: 36px; font-family: inherit;
-        }
+        select { font-size: 0.9rem; border: 1px solid var(--border-color); padding-right: 5px; width: 80px; height: 36px; font-family: inherit; }
 
         main {
             width: 100%; max-width: 900px; margin: 0 auto;
             padding: 40px 20px 100px 20px; min-height: calc(100vh - 60px);
-            opacity: 0; animation-delay: 0.2s;
         }
 
         #editor {
@@ -115,25 +144,14 @@
         .menu-popup.active { display: flex; }
         .menu-item { justify-content: flex-start; padding: 14px 20px; font-size: 0.95rem; width: 100%; border-radius: 0; border-bottom: 1px solid var(--border-color); }
         
-        /* 토글 스위치 (기본값 확실하게 지정) */
+        /* 토글 스위치 */
         .toggle-container { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-        .toggle-switch { 
-            position: relative; width: 40px; height: 22px; 
-            background: #dcdcdc; /* 기본 회색 (OFF) */
-            border-radius: 20px; transition: background 0.3s ease; 
-        }
-        .toggle-switch::after { 
-            content: ''; position: absolute; top: 3px; left: 3px; /* 기본 왼쪽 (OFF) */
-            width: 16px; height: 16px; background: white; border-radius: 50%; 
-            transition: left 0.3s cubic-bezier(0.4, 0.0, 0.2, 1); 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2); 
-        }
-        
-        /* 켜졌을 때 스타일 */
+        .toggle-switch { position: relative; width: 40px; height: 22px; background: #dcdcdc; border-radius: 20px; transition: background 0.3s ease; }
+        .toggle-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: left 0.3s cubic-bezier(0.4, 0.0, 0.2, 1); box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
         .menu-item.active .toggle-switch { background: var(--accent-color); }
         .menu-item.active .toggle-switch::after { left: 21px; }
 
-        /* Markdown & Highlight.js */
+        /* Markdown & Highlight */
         #preview h1 { border-bottom: 2px solid var(--border-color); padding-bottom: 10px; }
         #preview code { font-family: 'Nanum Gothic Coding', monospace; background: rgba(128,128,128,0.15); padding: 2px 5px; border-radius: 4px; color: #e83e8c; }
         #preview pre { background: #1e1e1e; padding: 15px; border-radius: 8px; overflow-x: auto; }
@@ -143,45 +161,62 @@
 </head>
 <body>
 
-    <header>
-        <div class="brand">
-            <i class="fa-solid fa-code"></i> Gemini Note 
-            <span id="saveStatus"><i class="fa-solid fa-check"></i> 저장됨</span>
+    <div id="lockScreen">
+        <div class="lock-icon"><i class="fa-solid fa-lock"></i></div>
+        <div class="lock-msg">이 비공개 센터는<br>비밀번호가 필요합니다.</div>
+        <div class="password-input-container">
+            <input type="password" id="passwordInput" placeholder="PASSWORD" maxlength="5">
+            <button id="unlockBtn"><i class="fa-solid fa-arrow-right"></i></button>
         </div>
-        <div class="tools">
-            <select id="fontSelector">
-                <option value="'Noto Sans KR', sans-serif">기본</option>
-                <option value="'Gowun Batang', serif">고운바탕</option>
-                <option value="'Nanum Myeongjo', serif">명조</option>
-                <option value="'Nanum Gothic Coding', monospace">코딩</option>
-            </select>
-            <button id="themeBtn"><i class="fa-solid fa-moon"></i></button>
-            <button id="viewToggleBtn"><i class="fa-solid fa-eye"></i></button>
-            <button id="shareBtn"><i class="fa-solid fa-share-nodes"></i></button>
-            <button id="menuBtn"><i class="fa-solid fa-bars"></i></button>
-        </div>
-    </header>
-
-    <div class="menu-popup" id="menuPopup">
-        <button class="menu-item" id="codingModeBtn">
-            <div class="toggle-container">
-                <span><i class="fa-solid fa-terminal"></i> 코딩 모드</span>
-                <div class="toggle-switch"></div>
-            </div>
-        </button>
-
-        <button class="menu-item" onclick="document.getElementById('fileInput').click()"><i class="fa-regular fa-folder-open"></i> 파일 열기</button>
-        <input type="file" id="fileInput" style="display: none;" accept=".txt,.md,.html,.js,.py,.c">
-        <button class="menu-item" onclick="exportFile('md')"><i class="fa-brands fa-markdown"></i> .md 저장</button>
-        <button class="menu-item" onclick="location.reload()"><i class="fa-solid fa-rotate-right"></i> 새로고침</button>
     </div>
 
-    <main class="animate-entry">
-        <textarea id="editor" placeholder="# 테스트&#13;&#10;&#13;&#10;코딩 모드 스위치 확인해보세요!&#13;&#10;처음엔 꺼져있어야 정상입니다."></textarea>
-        <div id="preview"></div>
-    </main>
+    <div class="content-wrapper" id="contentWrapper">
+        <header>
+            <div class="brand">
+                <i class="fa-solid fa-code"></i> Gemini Center 
+                <span id="saveStatus"><i class="fa-solid fa-check"></i> 저장됨</span>
+            </div>
+            <div class="tools">
+                <select id="fontSelector">
+                    <option value="'Noto Sans KR', sans-serif">기본</option>
+                    <option value="'Gowun Batang', serif">고운바탕</option>
+                    <option value="'Nanum Myeongjo', serif">명조</option>
+                    <option value="'Nanum Gothic Coding', monospace">코딩</option>
+                </select>
+                <button id="themeBtn"><i class="fa-solid fa-moon"></i></button>
+                <button id="viewToggleBtn"><i class="fa-solid fa-eye"></i></button>
+                <button id="shareBtn"><i class="fa-solid fa-share-nodes"></i></button>
+                <button id="menuBtn"><i class="fa-solid fa-bars"></i></button>
+            </div>
+        </header>
+
+        <div class="menu-popup" id="menuPopup">
+            <button class="menu-item" id="codingModeBtn">
+                <div class="toggle-container">
+                    <span><i class="fa-solid fa-terminal"></i> 코딩 모드</span>
+                    <div class="toggle-switch"></div>
+                </div>
+            </button>
+
+            <button class="menu-item" onclick="document.getElementById('fileInput').click()"><i class="fa-regular fa-folder-open"></i> 파일 열기</button>
+            <input type="file" id="fileInput" style="display: none;" accept=".txt,.md,.html,.js,.py,.c">
+            <button class="menu-item" onclick="exportFile('md')"><i class="fa-brands fa-markdown"></i> .md 저장</button>
+            <button class="menu-item" onclick="location.reload()"><i class="fa-solid fa-rotate-right"></i> 새로고침</button>
+        </div>
+
+        <main>
+            <textarea id="editor" placeholder="# 보안 접속 성공! 🔓&#13;&#10;&#13;&#10;비밀번호를 맞추셨군요.&#13;&#10;이제 자유롭게 기록하세요."></textarea>
+            <div id="preview"></div>
+        </main>
+    </div>
 
     <script>
+        // 요소 가져오기
+        const lockScreen = document.getElementById('lockScreen');
+        const passwordInput = document.getElementById('passwordInput');
+        const unlockBtn = document.getElementById('unlockBtn');
+        const contentWrapper = document.getElementById('contentWrapper');
+        
         const editor = document.getElementById('editor');
         const preview = document.getElementById('preview');
         const themeBtn = document.getElementById('themeBtn');
@@ -192,56 +227,73 @@
         const menuPopup = document.getElementById('menuPopup');
         const codingModeBtn = document.getElementById('codingModeBtn');
 
-        // --- [중요] 상태 저장용 변수 초기화 ---
-        // 사용자가 들어왔을 때의 초기 상태를 기억합니다.
-        let savedState = {
-            isDark: false,
-            font: "'Noto Sans KR', sans-serif"
-        };
+        // --- [0] 비밀번호 잠금 해제 로직 ---
+        function checkPassword() {
+            const input = passwordInput.value;
+            if (input === '20716') {
+                // 비밀번호 맞음!
+                lockScreen.classList.add('hidden'); // 잠금화면 숨김
+                
+                // 약간의 딜레이 후 메인 컨텐츠 등장 애니메이션 실행
+                setTimeout(() => {
+                    contentWrapper.classList.add('unlocked');
+                }, 300);
+                
+            } else {
+                // 틀림! 흔들림 효과
+                passwordInput.classList.add('shake');
+                passwordInput.value = ''; // 입력 초기화
+                setTimeout(() => passwordInput.classList.remove('shake'), 300);
+            }
+        }
+
+        // 클릭 또는 엔터키 이벤트 연결
+        unlockBtn.addEventListener('click', checkPassword);
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkPassword();
+        });
+
+
+        // --- [1] 초기화 로직 ---
+        let savedState = { isDark: false, font: "'Noto Sans KR', sans-serif" };
         let isCodingMode = false;
 
-        // --- [1. 초기화 로직] 페이지 로드 시 무조건 실행 ---
         window.addEventListener('DOMContentLoaded', () => {
-            // 1. 코딩 모드 버튼 강제 OFF
+            // 코딩 모드 강제 초기화
             codingModeBtn.classList.remove('active');
             document.body.classList.remove('coding-mode');
             isCodingMode = false;
 
-            // 2. 저장된 글 불러오기
+            // 저장된 글 불러오기
             const savedData = localStorage.getItem('geminiNoteData');
             if (savedData) { editor.value = savedData; autoResize(); }
+            
+            // 비밀번호 입력창에 포커스
+            passwordInput.focus();
         });
 
-        // --- [2. 코딩 모드 토글 (핵심 수정)] ---
+        // --- [2] 코딩 모드 토글 ---
         codingModeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            
             if (!isCodingMode) {
-                // === 켜는 순간 ===
-                // 1. 현재 상태 백업 (켜기 직전의 모습을 저장)
+                // 켜기
                 savedState.isDark = document.body.classList.contains('dark-mode');
                 savedState.font = fontSelector.value;
 
-                // 2. 코딩 모드 적용
                 isCodingMode = true;
-                codingModeBtn.classList.add('active'); // 스위치 ON
+                codingModeBtn.classList.add('active');
+                document.body.classList.add('coding-mode');
+                document.body.classList.add('dark-mode');
                 
-                document.body.classList.add('coding-mode'); // 폰트 강제 변경 CSS
-                document.body.classList.add('dark-mode');   // 다크모드 강제
-                
-                // 3. UI 동기화
                 themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
                 fontSelector.value = "'Nanum Gothic Coding', monospace";
                 fontSelector.disabled = true;
-
             } else {
-                // === 끄는 순간 ===
-                // 1. 코딩 모드 해제
+                // 끄기
                 isCodingMode = false;
-                codingModeBtn.classList.remove('active'); // 스위치 OFF
+                codingModeBtn.classList.remove('active');
                 document.body.classList.remove('coding-mode');
 
-                // 2. 배경색 복구 (백업해둔 값 사용)
                 if (savedState.isDark) {
                     document.body.classList.add('dark-mode');
                     themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
@@ -249,11 +301,8 @@
                     document.body.classList.remove('dark-mode');
                     themeBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
                 }
-
-                // 3. 폰트 복구 (백업해둔 값 사용)
                 fontSelector.disabled = false;
                 fontSelector.value = savedState.font;
-                // CSS 변수 강제 업데이트 (이게 안 돼서 폰트가 안 돌아왔던 것!)
                 document.documentElement.style.setProperty('--editor-font', savedState.font);
             }
             autoResize();
@@ -310,9 +359,9 @@
             }
         });
 
-        // --- 일반 테마/폰트 변경 ---
+        // --- 일반 기능 ---
         themeBtn.addEventListener('click', () => {
-            if (isCodingMode) return; // 코딩모드 중엔 테마 변경 금지 (원하면 풀어도 됨)
+            if (isCodingMode) return; 
             document.body.classList.toggle('dark-mode');
             const isDark = document.body.classList.contains('dark-mode');
             themeBtn.innerHTML = isDark ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
@@ -323,7 +372,6 @@
             autoResize();
         });
 
-        // --- 기타 기능 ---
         let saveTimer;
         editor.addEventListener('input', () => {
             saveStatus.classList.remove('show');
@@ -343,16 +391,12 @@
                 menuPopup.classList.remove('active');
             }
         });
-
+        
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(e) {
-                editor.value = e.target.result;
-                autoResize();
-                menuPopup.classList.remove('active');
-            };
+            reader.onload = (e) => { editor.value = e.target.result; autoResize(); menuPopup.classList.remove('active'); };
             reader.readAsText(file);
         });
 
@@ -371,12 +415,8 @@
         }
         
         document.getElementById('shareBtn').addEventListener('click', async () => {
-            if (navigator.share) {
-                await navigator.share({ title: 'Gemini Note', text: editor.value });
-            } else {
-                navigator.clipboard.writeText(editor.value);
-                alert('복사되었습니다!');
-            }
+            if (navigator.share) await navigator.share({ title: 'Gemini Note', text: editor.value });
+            else { navigator.clipboard.writeText(editor.value); alert('복사되었습니다!'); }
         });
     </script>
 </body>
