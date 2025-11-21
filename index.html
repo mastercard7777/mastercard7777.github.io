@@ -23,7 +23,7 @@
             --header-bg: rgba(253, 251, 247, 0.85);
             --border-color: rgba(0,0,0,0.06);
             --btn-hover: rgba(108, 92, 231, 0.08);
-            --editor-font: 'Noto Sans KR', sans-serif;
+            --editor-font: 'Noto Sans KR', sans-serif; /* 기본값 */
         }
 
         body.dark-mode {
@@ -35,7 +35,7 @@
             --btn-hover: rgba(255, 255, 255, 0.1);
         }
 
-        /* 코딩 모드일 때 강제 스타일 */
+        /* 코딩 모드 전용 클래스 (우선순위 높임) */
         body.coding-mode {
             --editor-font: 'Nanum Gothic Coding', monospace !important;
         }
@@ -52,7 +52,6 @@
             overflow-x: hidden;
         }
 
-        /* 애니메이션 */
         @keyframes slideUpFade {
             0% { opacity: 0; transform: translateY(30px); }
             100% { opacity: 1; transform: translateY(0); }
@@ -60,14 +59,10 @@
         .animate-entry { animation: slideUpFade 1.0s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 
         header {
-            height: 60px;
-            position: sticky; top: 0; left: 0; right: 0;
-            background: var(--header-bg);
-            border-bottom: 1px solid var(--border-color);
+            height: 60px; position: sticky; top: 0; left: 0; right: 0;
+            background: var(--header-bg); border-bottom: 1px solid var(--border-color);
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 15px;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
+            padding: 0 15px; z-index: 1000; backdrop-filter: blur(10px);
             animation: slideUpFade 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
@@ -82,7 +77,7 @@
             transition: 0.2s;
         }
         button:hover { background: var(--btn-hover); color: var(--accent-color); transform: scale(1.05); }
-        select:disabled { opacity: 0.5; cursor: not-allowed; } /* 코딩모드 때 폰트변경 잠금 */
+        select:disabled { opacity: 0.5; pointer-events: none; }
 
         select { 
             font-size: 0.9rem; border: 1px solid var(--border-color); 
@@ -90,19 +85,15 @@
         }
 
         main {
-            width: 100%; max-width: 900px;
-            margin: 0 auto;
-            padding: 40px 20px 100px 20px;
-            min-height: calc(100vh - 60px);
+            width: 100%; max-width: 900px; margin: 0 auto;
+            padding: 40px 20px 100px 20px; min-height: calc(100vh - 60px);
             opacity: 0; animation-delay: 0.2s;
         }
 
         #editor {
-            width: 100%; min-height: 60vh;
-            border: none; outline: none; resize: none;
+            width: 100%; min-height: 60vh; border: none; outline: none; resize: none;
             background: transparent; color: var(--text-color);
-            font-size: 18px; line-height: 1.7;
-            overflow-y: hidden;
+            font-size: 18px; line-height: 1.7; overflow-y: hidden;
             font-family: var(--editor-font);
         }
 
@@ -114,42 +105,35 @@
         /* 메뉴 팝업 */
         .menu-popup {
             position: absolute; top: 65px; right: 15px;
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            background: var(--bg-color); border: 1px solid var(--border-color);
+            border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);
             display: none; flex-direction: column; width: 220px; z-index: 2000;
-            overflow: hidden;
-            transform-origin: top right;
+            overflow: hidden; transform-origin: top right;
             animation: popOpen 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         @keyframes popOpen { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .menu-popup.active { display: flex; }
-        
         .menu-item { justify-content: flex-start; padding: 14px 20px; font-size: 0.95rem; width: 100%; border-radius: 0; border-bottom: 1px solid var(--border-color); }
         
-        /* 토글 스위치 CSS (확실한 ON/OFF 구분) */
+        /* 토글 스위치 (기본값 확실하게 지정) */
         .toggle-container { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-        
         .toggle-switch { 
             position: relative; width: 40px; height: 22px; 
-            background: #dcdcdc; /* 기본 꺼짐 색상 */
-            border-radius: 20px; 
-            transition: background 0.3s ease; 
+            background: #dcdcdc; /* 기본 회색 (OFF) */
+            border-radius: 20px; transition: background 0.3s ease; 
         }
         .toggle-switch::after { 
-            content: ''; position: absolute; top: 3px; left: 3px; 
-            width: 16px; height: 16px; 
-            background: white; border-radius: 50%; 
+            content: ''; position: absolute; top: 3px; left: 3px; /* 기본 왼쪽 (OFF) */
+            width: 16px; height: 16px; background: white; border-radius: 50%; 
             transition: left 0.3s cubic-bezier(0.4, 0.0, 0.2, 1); 
             box-shadow: 0 1px 3px rgba(0,0,0,0.2); 
         }
         
-        /* 부모 버튼에 active 클래스가 있을 때만 켜짐 상태 */
+        /* 켜졌을 때 스타일 */
         .menu-item.active .toggle-switch { background: var(--accent-color); }
         .menu-item.active .toggle-switch::after { left: 21px; }
 
-        /* Markdown 스타일 */
+        /* Markdown & Highlight.js */
         #preview h1 { border-bottom: 2px solid var(--border-color); padding-bottom: 10px; }
         #preview code { font-family: 'Nanum Gothic Coding', monospace; background: rgba(128,128,128,0.15); padding: 2px 5px; border-radius: 4px; color: #e83e8c; }
         #preview pre { background: #1e1e1e; padding: 15px; border-radius: 8px; overflow-x: auto; }
@@ -188,19 +172,16 @@
 
         <button class="menu-item" onclick="document.getElementById('fileInput').click()"><i class="fa-regular fa-folder-open"></i> 파일 열기</button>
         <input type="file" id="fileInput" style="display: none;" accept=".txt,.md,.html,.js,.py,.c">
-        
         <button class="menu-item" onclick="exportFile('md')"><i class="fa-brands fa-markdown"></i> .md 저장</button>
-        <button class="menu-item" onclick="exportFile('html')"><i class="fa-brands fa-html5"></i> .html 저장</button>
         <button class="menu-item" onclick="location.reload()"><i class="fa-solid fa-rotate-right"></i> 새로고침</button>
     </div>
 
     <main class="animate-entry">
-        <textarea id="editor" placeholder="# 테스트를 해보세요!&#13;&#10;&#13;&#10;1. 라이트 모드에서 글을 쓰다가...&#13;&#10;2. 코딩 모드를 켜보세요! (다크+코딩폰트 변신)&#13;&#10;3. 다시 끄면? (원래대로 돌아옵니다! ✨)"></textarea>
+        <textarea id="editor" placeholder="# 테스트&#13;&#10;&#13;&#10;코딩 모드 스위치 확인해보세요!&#13;&#10;처음엔 꺼져있어야 정상입니다."></textarea>
         <div id="preview"></div>
     </main>
 
     <script>
-        // 요소 가져오기
         const editor = document.getElementById('editor');
         const preview = document.getElementById('preview');
         const themeBtn = document.getElementById('themeBtn');
@@ -211,57 +192,57 @@
         const menuPopup = document.getElementById('menuPopup');
         const codingModeBtn = document.getElementById('codingModeBtn');
 
-        // --- 1. 상태 저장 변수 (여기에 원래 상태를 백업함) ---
-        let savedIsDark = false;
-        let savedFontValue = "'Noto Sans KR', sans-serif";
+        // --- [중요] 상태 저장용 변수 초기화 ---
+        // 사용자가 들어왔을 때의 초기 상태를 기억합니다.
+        let savedState = {
+            isDark: false,
+            font: "'Noto Sans KR', sans-serif"
+        };
         let isCodingMode = false;
 
-        // --- 2. 자동 높이 ---
-        function autoResize() {
-            editor.style.height = 'auto';
-            editor.style.height = editor.scrollHeight + 'px';
-        }
-        editor.addEventListener('input', autoResize);
-        window.addEventListener('resize', autoResize);
+        // --- [1. 초기화 로직] 페이지 로드 시 무조건 실행 ---
+        window.addEventListener('DOMContentLoaded', () => {
+            // 1. 코딩 모드 버튼 강제 OFF
+            codingModeBtn.classList.remove('active');
+            document.body.classList.remove('coding-mode');
+            isCodingMode = false;
 
-        // --- 3. 마크다운 & 코딩 모드 로직 (핵심 수정됨) ---
-        marked.setOptions({
-            highlight: function(code, lang) {
-                const language = highlight.getLanguage(lang) ? lang : 'plaintext';
-                return highlight.highlight(code, { language }).value;
-            },
-            langPrefix: 'hljs language-'
+            // 2. 저장된 글 불러오기
+            const savedData = localStorage.getItem('geminiNoteData');
+            if (savedData) { editor.value = savedData; autoResize(); }
         });
 
+        // --- [2. 코딩 모드 토글 (핵심 수정)] ---
         codingModeBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // 메뉴 닫힘 방지
+            e.stopPropagation();
             
-            isCodingMode = !isCodingMode; // 상태 반전
+            if (!isCodingMode) {
+                // === 켜는 순간 ===
+                // 1. 현재 상태 백업 (켜기 직전의 모습을 저장)
+                savedState.isDark = document.body.classList.contains('dark-mode');
+                savedState.font = fontSelector.value;
 
-            if (isCodingMode) {
-                // [ON 켜기] 
-                // 1. 현재 상태를 백업한다 (스냅샷)
-                savedIsDark = document.body.classList.contains('dark-mode');
-                savedFontValue = fontSelector.value;
-
-                // 2. 코딩 모드 적용 (강제 다크모드 + 코딩폰트)
-                document.body.classList.add('coding-mode');
-                document.body.classList.add('dark-mode');
+                // 2. 코딩 모드 적용
+                isCodingMode = true;
+                codingModeBtn.classList.add('active'); // 스위치 ON
                 
-                // 3. UI 업데이트
-                codingModeBtn.classList.add('active'); // 스위치 켜짐 (보라색)
+                document.body.classList.add('coding-mode'); // 폰트 강제 변경 CSS
+                document.body.classList.add('dark-mode');   // 다크모드 강제
+                
+                // 3. UI 동기화
                 themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
-                fontSelector.value = "'Nanum Gothic Coding', monospace"; // 선택상자도 코딩으로 변경
-                fontSelector.disabled = true; // 헷갈리지 않게 변경 막기
-                
+                fontSelector.value = "'Nanum Gothic Coding', monospace";
+                fontSelector.disabled = true;
+
             } else {
-                // [OFF 끄기]
-                // 1. 코딩 모드 클래스 제거
+                // === 끄는 순간 ===
+                // 1. 코딩 모드 해제
+                isCodingMode = false;
+                codingModeBtn.classList.remove('active'); // 스위치 OFF
                 document.body.classList.remove('coding-mode');
-                codingModeBtn.classList.remove('active'); // 스위치 꺼짐 (회색)
-                
-                // 2. 원래 배경색 복구
-                if (savedIsDark) {
+
+                // 2. 배경색 복구 (백업해둔 값 사용)
+                if (savedState.isDark) {
                     document.body.classList.add('dark-mode');
                     themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
                 } else {
@@ -269,49 +250,49 @@
                     themeBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
                 }
 
-                // 3. 원래 폰트 복구
-                fontSelector.disabled = false; // 선택상자 풀기
-                fontSelector.value = savedFontValue; // 원래 값으로 되돌리기
-                // CSS 변수도 원래 값으로 적용
-                document.documentElement.style.setProperty('--editor-font', savedFontValue);
+                // 3. 폰트 복구 (백업해둔 값 사용)
+                fontSelector.disabled = false;
+                fontSelector.value = savedState.font;
+                // CSS 변수 강제 업데이트 (이게 안 돼서 폰트가 안 돌아왔던 것!)
+                document.documentElement.style.setProperty('--editor-font', savedState.font);
             }
             autoResize();
         });
 
-        // --- 4. 일반 테마/폰트 변경 ---
-        themeBtn.addEventListener('click', () => {
-            // 코딩 모드일 땐 테마 변경 막거나, 경고를 줄 수도 있지만 여기선 그냥 둠
-            document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            themeBtn.innerHTML = isDark ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+        // --- 자동 높이 ---
+        function autoResize() {
+            editor.style.height = 'auto';
+            editor.style.height = editor.scrollHeight + 'px';
+        }
+        editor.addEventListener('input', autoResize);
+        window.addEventListener('resize', autoResize);
+
+        // --- Markdown ---
+        marked.setOptions({
+            highlight: function(code, lang) {
+                const language = highlight.getLanguage(lang) ? lang : 'plaintext';
+                return highlight.highlight(code, { language }).value;
+            }
         });
 
-        fontSelector.addEventListener('change', (e) => {
-            document.documentElement.style.setProperty('--editor-font', e.target.value);
-            autoResize();
-        });
-
-        // --- 5. 렌더링 ---
+        // --- 렌더링 ---
         function renderContent() {
             let rawText = editor.value;
             const mathBlocks = [];
-            // 수식 보호
             const protectedText = rawText.replace(/(\$\$[\s\S]*?\$\$)|(\$[^$\n]*?\$)/g, (match) => {
                 mathBlocks.push(match);
                 return `__MATH_BLOCK_${mathBlocks.length - 1}__`;
             });
             let html = marked.parse(protectedText);
-            // 수식 복구
             html = html.replace(/__MATH_BLOCK_(\d+)__/g, (match, index) => mathBlocks[index]);
             preview.innerHTML = html;
-            // 렌더링
             renderMathInElement(preview, {
                 delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}],
                 throwOnError: false
             });
         }
 
-        // 뷰어 토글
+        // --- 뷰어 토글 ---
         let isPreview = false;
         viewToggleBtn.addEventListener('click', () => {
             isPreview = !isPreview;
@@ -329,7 +310,20 @@
             }
         });
 
-        // --- 6. 기타 (저장, 공유, 팝업) ---
+        // --- 일반 테마/폰트 변경 ---
+        themeBtn.addEventListener('click', () => {
+            if (isCodingMode) return; // 코딩모드 중엔 테마 변경 금지 (원하면 풀어도 됨)
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            themeBtn.innerHTML = isDark ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+        });
+
+        fontSelector.addEventListener('change', (e) => {
+            document.documentElement.style.setProperty('--editor-font', e.target.value);
+            autoResize();
+        });
+
+        // --- 기타 기능 ---
         let saveTimer;
         editor.addEventListener('input', () => {
             saveStatus.classList.remove('show');
@@ -339,11 +333,6 @@
                 saveStatus.classList.add('show');
             }, 500);
         });
-
-        window.onload = () => {
-            const saved = localStorage.getItem('geminiNoteData');
-            if (saved) { editor.value = saved; autoResize(); }
-        };
 
         menuBtn.addEventListener('click', (e) => {
             e.stopPropagation();
