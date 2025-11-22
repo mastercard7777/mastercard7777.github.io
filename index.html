@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Private Workspace</title>
+    <title>NS Center Cloud</title>
     
+    <!-- 아이콘 & 폰트 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Gamja+Flower&family=Gowun+Batang&family=Gowun+Dodum&family=Gugiyeon&family=Hi+Melody&family=Jua&family=Nanum+Brush+Script&family=Nanum+Gothic&family=Nanum+Gothic+Coding&family=Nanum+Myeongjo&family=Nanum+Pen+Script&family=Noto+Sans+KR&family=Poor+Story&family=Single+Day&family=Song+Myung&family=Stylish&family=Sunflower&family=Yeon+Sung&display=swap" rel="stylesheet">
     
+    <!-- 라이브러리 -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
@@ -20,24 +22,31 @@
             --bg-color: #fdfbf7;
             --text-color: #2c3e50;
             --accent-color: #6c5ce7;
-            --header-bg: rgba(253, 251, 247, 0.85);
+            --header-bg: rgba(253, 251, 247, 0.95);
             --border-color: rgba(0,0,0,0.06);
             --btn-hover: rgba(108, 92, 231, 0.08);
             --editor-font: 'Noto Sans KR', sans-serif;
+            --editor-size: 18px;
+            --anim-speed: 0.4s;
         }
 
         body.dark-mode {
             --bg-color: #1e1e1e;
             --text-color: #dcdcdc;
             --accent-color: #a29bfe;
-            --header-bg: rgba(30, 30, 30, 0.85);
+            --header-bg: rgba(30, 30, 30, 0.95);
             --border-color: rgba(255,255,255,0.1);
             --btn-hover: rgba(255, 255, 255, 0.1);
         }
 
-        body.coding-mode {
-            --editor-font: 'Nanum Gothic Coding', monospace !important;
+        body.perf-mode {
+            --anim-speed: 0s !important;
+            --editor-font: 'Noto Sans KR', sans-serif !important;
         }
+        body.perf-mode * { transition: none !important; animation: none !important; }
+        body.perf-mode header { backdrop-filter: none; background: #1e1e1e; }
+
+        body.coding-mode { --editor-font: 'Nanum Gothic Coding', monospace !important; }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
@@ -47,111 +56,110 @@
             background: var(--bg-color); 
             color: var(--text-color); 
             min-height: 100vh;
-            transition: background 0.4s ease, color 0.4s ease;
             overflow-x: hidden;
+            transition: background var(--anim-speed) ease, color var(--anim-speed) ease;
         }
 
-        /* --- 잠금 화면 (Lock Screen) --- */
+        /* 잠금 화면 */
         #lockScreen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #1e1e1e; /* 보안 느낌 나는 어두운 배경 */
-            color: white;
+            background: #121212;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 9999; /* 최상단 */
+            z-index: 2147483647;
             transition: opacity 0.5s ease, visibility 0.5s;
+            color: white;
         }
-        #lockScreen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
         
-        .lock-icon { font-size: 3rem; color: #a29bfe; margin-bottom: 20px; animation: float 3s ease-in-out infinite; }
-        .lock-msg { font-size: 1.2rem; margin-bottom: 30px; font-family: 'Gowun Batang', serif; text-align: center; }
+        .lock-content { text-align: center; transition: opacity 0.3s; }
+        .lock-icon { font-size: 4rem; color: #a29bfe; margin-bottom: 20px; }
+        .lock-msg { font-size: 1.2rem; margin-bottom: 40px; font-family: 'Gowun Batang', serif; opacity: 0.8; }
         
-        .password-input-container { display: flex; gap: 10px; }
+        #loadingSpinner { display: none; flex-direction: column; align-items: center; }
+        .spinner {
+            width: 50px; height: 50px;
+            border: 5px solid rgba(255,255,255,0.2);
+            border-top: 5px solid #a29bfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        .success-msg { font-size: 1.3rem; color: #a29bfe; font-weight: bold; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .password-box {
+            display: flex; gap: 10px; background: #1e1e1e; padding: 5px; border-radius: 12px; border: 1px solid #333;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
         #passwordInput {
-            padding: 10px 15px; font-size: 1rem; border-radius: 8px; border: 1px solid #444;
-            background: #2d2d2d; color: white; outline: none; width: 200px; text-align: center;
-            font-family: monospace; letter-spacing: 3px;
+            padding: 12px 15px; font-size: 1.2rem; border: none; background: transparent;
+            color: white; outline: none; width: 180px; text-align: center;
+            font-family: monospace; letter-spacing: 5px;
         }
-        #passwordInput:focus { border-color: #a29bfe; box-shadow: 0 0 10px rgba(162, 155, 254, 0.3); }
-        
         #unlockBtn {
-            background: #a29bfe; color: #1e1e1e; font-weight: bold;
-            padding: 10px 20px; border-radius: 8px; cursor: pointer;
+            background: #a29bfe; color: #121212; border: none; padding: 0 20px; border-radius: 8px;
+            font-size: 1.2rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center;
         }
         #unlockBtn:hover { background: #6c5ce7; color: white; }
-
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .shake { animation: shake 0.3s ease-in-out; border: 1px solid #ff7675 !important; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
-        .shake { animation: shake 0.3s ease-in-out; border-color: #ff7675 !important; }
 
-        /* --- 애니메이션 (입장 효과) --- */
-        @keyframes slideUpFade {
-            0% { opacity: 0; transform: translateY(30px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-        /* 잠금 해제 전에는 숨김 처리 */
-        .content-wrapper { opacity: 0; } 
-        .content-wrapper.unlocked { animation: slideUpFade 1.0s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        /* 메인 컨텐츠 등장 */
+        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        .content-visible { animation: slideUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 
-        /* 헤더 */
         header {
             height: 60px; position: sticky; top: 0; left: 0; right: 0;
             background: var(--header-bg); border-bottom: 1px solid var(--border-color);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 15px; z-index: 1000; backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 15px; z-index: 1000;
+            backdrop-filter: blur(10px);
         }
-
         .brand { font-family: 'Gowun Batang', serif; font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
-        .brand span { font-size: 0.8rem; color: var(--accent-color); font-weight: normal; }
         .tools { display: flex; align-items: center; gap: 5px; }
 
         button, select {
-            background: none; border: none; cursor: pointer;
-            color: var(--text-color); padding: 8px; border-radius: 8px;
-            font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
-            transition: 0.2s;
+            background: none; border: none; cursor: pointer; color: var(--text-color);
+            padding: 8px; border-radius: 8px; font-size: 1.1rem; 
+            display: flex; align-items: center; justify-content: center; transition: 0.2s;
         }
         button:hover { background: var(--btn-hover); color: var(--accent-color); transform: scale(1.05); }
         select:disabled { opacity: 0.5; pointer-events: none; }
         select { font-size: 0.9rem; border: 1px solid var(--border-color); padding-right: 5px; width: 80px; height: 36px; font-family: inherit; }
+        .font-control { font-size: 0.9rem; padding: 0 10px; border: 1px solid var(--border-color); height: 36px; }
 
-        main {
-            width: 100%; max-width: 900px; margin: 0 auto;
-            padding: 40px 20px 100px 20px; min-height: calc(100vh - 60px);
-        }
+        main { width: 100%; max-width: 900px; margin: 0 auto; padding: 40px 20px 100px 20px; min-height: calc(100vh - 60px); }
 
         #editor {
             width: 100%; min-height: 60vh; border: none; outline: none; resize: none;
             background: transparent; color: var(--text-color);
-            font-size: 18px; line-height: 1.7; overflow-y: hidden;
-            font-family: var(--editor-font);
+            line-height: 1.7; overflow-y: hidden;
+            font-family: var(--editor-font); font-size: var(--editor-size);
         }
 
-        #preview { display: none; padding-bottom: 50px; font-family: var(--editor-font); }
+        #preview { display: none; padding-bottom: 50px; font-family: var(--editor-font); font-size: var(--editor-size); }
         
-        #saveStatus { font-size: 0.8rem; color: #888; margin-right: 10px; opacity: 0; transition: opacity 0.5s; }
+        /* 저장 상태 (클라우드 아이콘 추가) */
+        #saveStatus { font-size: 0.8rem; color: #888; margin-right: 10px; opacity: 0; transition: opacity 0.5s; display: flex; align-items: center; gap: 5px; }
         #saveStatus.show { opacity: 1; }
+        #saveStatus i.fa-cloud { color: #3498db; }
 
-        /* 메뉴 팝업 */
         .menu-popup {
             position: absolute; top: 65px; right: 15px;
             background: var(--bg-color); border: 1px solid var(--border-color);
             border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            display: none; flex-direction: column; width: 220px; z-index: 2000;
+            display: none; flex-direction: column; width: 230px; z-index: 2000;
             overflow: hidden; transform-origin: top right;
-            animation: popOpen 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        .menu-popup.active { display: flex; animation: popOpen 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes popOpen { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .menu-popup.active { display: flex; }
         .menu-item { justify-content: flex-start; padding: 14px 20px; font-size: 0.95rem; width: 100%; border-radius: 0; border-bottom: 1px solid var(--border-color); }
         
-        /* 토글 스위치 */
         .toggle-container { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         .toggle-switch { position: relative; width: 40px; height: 22px; background: #dcdcdc; border-radius: 20px; transition: background 0.3s ease; }
         .toggle-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: left 0.3s cubic-bezier(0.4, 0.0, 0.2, 1); box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
         .menu-item.active .toggle-switch { background: var(--accent-color); }
         .menu-item.active .toggle-switch::after { left: 21px; }
+        .beta-badge { font-size: 0.7rem; background: #ff7675; color: white; padding: 2px 5px; border-radius: 4px; margin-left: 5px; }
 
-        /* Markdown & Highlight */
         #preview h1 { border-bottom: 2px solid var(--border-color); padding-bottom: 10px; }
         #preview code { font-family: 'Nanum Gothic Coding', monospace; background: rgba(128,128,128,0.15); padding: 2px 5px; border-radius: 4px; color: #e83e8c; }
         #preview pre { background: #1e1e1e; padding: 15px; border-radius: 8px; overflow-x: auto; }
@@ -161,22 +169,33 @@
 </head>
 <body>
 
+    <!-- 잠금 화면 -->
     <div id="lockScreen">
-        <div class="lock-icon"><i class="fa-solid fa-lock"></i></div>
-        <div class="lock-msg">이 비공개 센터는<br>비밀번호가 필요합니다.</div>
-        <div class="password-input-container">
-            <input type="password" id="passwordInput" placeholder="PASSWORD" maxlength="5">
-            <button id="unlockBtn"><i class="fa-solid fa-arrow-right"></i></button>
+        <div class="lock-content" id="lockContent">
+            <div class="lock-icon"><i class="fa-solid fa-lock"></i></div>
+            <div class="lock-msg">NS Center Cloud<br>Security Clearance Required</div>
+            <div class="password-box" id="passwordBox">
+                <input type="password" id="passwordInput" placeholder="CODE" maxlength="5">
+                <button id="unlockBtn"><i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+        </div>
+        <div id="loadingSpinner">
+            <div class="spinner"></div>
+            <div class="success-msg">잠금이 해제되었습니다.</div>
         </div>
     </div>
 
-    <div class="content-wrapper" id="contentWrapper">
+    <!-- 메인 컨텐츠 -->
+    <div id="contentWrapper" style="display: none;">
         <header>
             <div class="brand">
-                <i class="fa-solid fa-code"></i> Gemini Center 
-                <span id="saveStatus"><i class="fa-solid fa-check"></i> 저장됨</span>
+                <i class="fa-solid fa-shield-halved"></i> NS Center 
+                <span id="saveStatus"><i class="fa-solid fa-cloud"></i> 저장됨</span>
             </div>
             <div class="tools">
+                <button class="font-control" id="fontDown" title="글자 작게"><i class="fa-solid fa-minus"></i></button>
+                <button class="font-control" id="fontUp" title="글자 크게"><i class="fa-solid fa-plus"></i></button>
+
                 <select id="fontSelector">
                     <option value="'Noto Sans KR', sans-serif">기본</option>
                     <option value="'Gowun Batang', serif">고운바탕</option>
@@ -192,29 +211,93 @@
 
         <div class="menu-popup" id="menuPopup">
             <button class="menu-item" id="codingModeBtn">
-                <div class="toggle-container">
-                    <span><i class="fa-solid fa-terminal"></i> 코딩 모드</span>
-                    <div class="toggle-switch"></div>
-                </div>
+                <div class="toggle-container"><span><i class="fa-solid fa-terminal"></i> 코딩 모드</span><div class="toggle-switch"></div></div>
             </button>
-
+            <button class="menu-item" id="perfModeBtn">
+                <div class="toggle-container"><span><i class="fa-solid fa-bolt"></i> 성능+ 모드 <span class="beta-badge">BETA</span></span><div class="toggle-switch"></div></div>
+            </button>
             <button class="menu-item" onclick="document.getElementById('fileInput').click()"><i class="fa-regular fa-folder-open"></i> 파일 열기</button>
             <input type="file" id="fileInput" style="display: none;" accept=".txt,.md,.html,.js,.py,.c">
-            <button class="menu-item" onclick="exportFile('md')"><i class="fa-brands fa-markdown"></i> .md 저장</button>
+            <button class="menu-item" onclick="window.exportFile('md')"><i class="fa-brands fa-markdown"></i> .md 저장</button>
             <button class="menu-item" onclick="location.reload()"><i class="fa-solid fa-rotate-right"></i> 새로고침</button>
         </div>
 
         <main>
-            <textarea id="editor" placeholder="# 보안 접속 성공! 🔓&#13;&#10;&#13;&#10;비밀번호를 맞추셨군요.&#13;&#10;이제 자유롭게 기록하세요."></textarea>
+            <textarea id="editor" placeholder="# 클라우드 동기화 중... ☁️&#13;&#10;&#13;&#10;이제 당신의 글은 Firebase에 안전하게 저장됩니다.&#13;&#10;다른 기기에서 접속해도 이 글을 볼 수 있습니다."></textarea>
             <div id="preview"></div>
         </main>
     </div>
 
+    <!-- Firebase 모듈 설정 -->
+    <script type="module">
+        // 1. Firebase 라이브러리 가져오기 (CDN)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
+
+        // 2. 너의 Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyCBCzdAIJX8XzUZLGXXSvqfqhslCc-iLIc",
+            authDomain: "ns-center-shared.firebaseapp.com",
+            projectId: "ns-center-shared",
+            storageBucket: "ns-center-shared.firebasestorage.app",
+            messagingSenderId: "104047436416",
+            appId: "1:104047436416:web:dc932007c8ab247813bc65",
+            measurementId: "G-8Q33L2LBWW"
+        };
+
+        // 3. 앱 초기화
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        // Analytics는 로컬에서 오류가 날 수 있어 try-catch로 감쌈
+        try { const analytics = getAnalytics(app); } catch(e) { console.log("Analytics skipped in local"); }
+
+        const editor = document.getElementById('editor');
+        const saveStatus = document.getElementById('saveStatus');
+        const DOC_ID = "my_shared_note"; // 하나의 문서를 공유 (원하면 바꿀 수 있음)
+
+        // 4. [읽기] 실시간 동기화 (onSnapshot)
+        // 클라우드 내용이 바뀌면 에디터도 바뀜!
+        onSnapshot(doc(db, "notes", DOC_ID), (doc) => {
+            if (doc.exists()) {
+                const cloudContent = doc.data().content;
+                // 내가 타이핑 중이 아닐 때만 업데이트 (충돌 방지)
+                if (document.activeElement !== editor && cloudContent !== editor.value) {
+                    editor.value = cloudContent;
+                    // window 객체에 등록된 autoResize 함수 호출
+                    if(window.autoResize) window.autoResize();
+                }
+            }
+        });
+
+        // 5. [쓰기] 클라우드 저장 함수
+        window.saveToCloud = async (content) => {
+            try {
+                await setDoc(doc(db, "notes", DOC_ID), {
+                    content: content,
+                    updatedAt: new Date()
+                }, { merge: true });
+                
+                // 저장 완료 아이콘 표시
+                saveStatus.innerHTML = '<i class="fa-solid fa-cloud"></i> 저장됨';
+                saveStatus.classList.add('show');
+            } catch (e) {
+                console.error("Save Error: ", e);
+                saveStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> 오류';
+                saveStatus.classList.add('show');
+            }
+        };
+    </script>
+
+    <!-- 메인 로직 Script -->
     <script>
         // 요소 가져오기
         const lockScreen = document.getElementById('lockScreen');
+        const lockContent = document.getElementById('lockContent');
+        const loadingSpinner = document.getElementById('loadingSpinner');
         const passwordInput = document.getElementById('passwordInput');
         const unlockBtn = document.getElementById('unlockBtn');
+        const passwordBox = document.getElementById('passwordBox');
         const contentWrapper = document.getElementById('contentWrapper');
         
         const editor = document.getElementById('editor');
@@ -226,74 +309,122 @@
         const menuBtn = document.getElementById('menuBtn');
         const menuPopup = document.getElementById('menuPopup');
         const codingModeBtn = document.getElementById('codingModeBtn');
+        const perfModeBtn = document.getElementById('perfModeBtn');
+        
+        const fontUp = document.getElementById('fontUp');
+        const fontDown = document.getElementById('fontDown');
 
-        // --- [0] 비밀번호 잠금 해제 로직 ---
-        function checkPassword() {
-            const input = passwordInput.value;
-            if (input === '20716') {
-                // 비밀번호 맞음!
-                lockScreen.classList.add('hidden'); // 잠금화면 숨김
-                
-                // 약간의 딜레이 후 메인 컨텐츠 등장 애니메이션 실행
-                setTimeout(() => {
-                    contentWrapper.classList.add('unlocked');
-                }, 300);
-                
+        // 상태 변수
+        let savedState = { isDark: false, font: "'Noto Sans KR', sans-serif" };
+        let savedPerfState = { isDark: false, font: "'Noto Sans KR', sans-serif", size: 18 };
+        let isCodingMode = false;
+        let isPerfMode = false;
+        let fontSize = 18;
+
+        // --- 초기화 ---
+        window.addEventListener('DOMContentLoaded', () => {
+            codingModeBtn.classList.remove('active');
+            perfModeBtn.classList.remove('active');
+            document.body.classList.remove('coding-mode');
+            document.body.classList.remove('perf-mode');
+            
+            // 로컬 스토리지 백업 불러오기 (오프라인 대비)
+            const localData = localStorage.getItem('geminiNoteData');
+            if (localData) { editor.value = localData; autoResize(); }
+
+            const savedSize = localStorage.getItem('geminiFontSize');
+            if (savedSize) { fontSize = parseInt(savedSize); updateFontSize(); }
+            
+            // 세션 확인 (잠금화면 스킵)
+            if (sessionStorage.getItem('isUnlocked') === 'true') {
+                lockScreen.style.display = 'none';
+                contentWrapper.style.display = 'block';
             } else {
-                // 틀림! 흔들림 효과
-                passwordInput.classList.add('shake');
-                passwordInput.value = ''; // 입력 초기화
-                setTimeout(() => passwordInput.classList.remove('shake'), 300);
+                setTimeout(() => passwordInput.focus(), 100);
+            }
+        });
+
+        // --- 잠금 해제 ---
+        function checkPassword() {
+            if (passwordInput.value === '20716') {
+                sessionStorage.setItem('isUnlocked', 'true');
+                lockContent.style.display = 'none';
+                loadingSpinner.style.display = 'flex';
+                setTimeout(() => {
+                    lockScreen.style.opacity = '0';
+                    lockScreen.style.visibility = 'hidden';
+                    contentWrapper.style.display = 'block';
+                    contentWrapper.classList.add('content-visible');
+                }, 1000);
+            } else {
+                passwordBox.classList.add('shake');
+                passwordInput.value = '';
+                setTimeout(() => passwordBox.classList.remove('shake'), 300);
             }
         }
-
-        // 클릭 또는 엔터키 이벤트 연결
         unlockBtn.addEventListener('click', checkPassword);
-        passwordInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') checkPassword();
+        passwordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') checkPassword(); });
+
+        // --- 에디터 기능 ---
+        function updateFontSize() {
+            document.documentElement.style.setProperty('--editor-size', fontSize + 'px');
+            localStorage.setItem('geminiFontSize', fontSize);
+            autoResize();
+        }
+        fontUp.addEventListener('click', () => { if (!isPerfMode && fontSize < 60) { fontSize += 2; updateFontSize(); } });
+        fontDown.addEventListener('click', () => { if (!isPerfMode && fontSize > 10) { fontSize -= 2; updateFontSize(); } });
+
+        // 성능+ 모드
+        perfModeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!isPerfMode) {
+                savedPerfState.isDark = document.body.classList.contains('dark-mode');
+                savedPerfState.font = fontSelector.value;
+                savedPerfState.size = fontSize;
+                isPerfMode = true;
+                perfModeBtn.classList.add('active');
+                document.body.classList.add('perf-mode');
+                document.body.classList.add('dark-mode');
+                fontSelector.value = "'Noto Sans KR', sans-serif";
+                fontSelector.disabled = true;
+                fontSize = 18;
+                document.documentElement.style.setProperty('--editor-size', '18px');
+                themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
+            } else {
+                isPerfMode = false;
+                perfModeBtn.classList.remove('active');
+                document.body.classList.remove('perf-mode');
+                if (!savedPerfState.isDark && !isCodingMode) {
+                    document.body.classList.remove('dark-mode');
+                    themeBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
+                }
+                fontSelector.disabled = false;
+                fontSelector.value = savedPerfState.font;
+                document.documentElement.style.setProperty('--editor-font', savedPerfState.font);
+                fontSize = savedPerfState.size;
+                updateFontSize();
+            }
+            autoResize();
         });
 
-
-        // --- [1] 초기화 로직 ---
-        let savedState = { isDark: false, font: "'Noto Sans KR', sans-serif" };
-        let isCodingMode = false;
-
-        window.addEventListener('DOMContentLoaded', () => {
-            // 코딩 모드 강제 초기화
-            codingModeBtn.classList.remove('active');
-            document.body.classList.remove('coding-mode');
-            isCodingMode = false;
-
-            // 저장된 글 불러오기
-            const savedData = localStorage.getItem('geminiNoteData');
-            if (savedData) { editor.value = savedData; autoResize(); }
-            
-            // 비밀번호 입력창에 포커스
-            passwordInput.focus();
-        });
-
-        // --- [2] 코딩 모드 토글 ---
+        // 코딩 모드
         codingModeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
+            if (isPerfMode) { alert('성능+ 모드를 먼저 꺼주세요.'); return; }
             if (!isCodingMode) {
-                // 켜기
                 savedState.isDark = document.body.classList.contains('dark-mode');
                 savedState.font = fontSelector.value;
-
                 isCodingMode = true;
                 codingModeBtn.classList.add('active');
                 document.body.classList.add('coding-mode');
                 document.body.classList.add('dark-mode');
-                
                 themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
                 fontSelector.value = "'Nanum Gothic Coding', monospace";
                 fontSelector.disabled = true;
             } else {
-                // 끄기
                 isCodingMode = false;
                 codingModeBtn.classList.remove('active');
                 document.body.classList.remove('coding-mode');
-
                 if (savedState.isDark) {
                     document.body.classList.add('dark-mode');
                     themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
@@ -308,90 +439,80 @@
             autoResize();
         });
 
-        // --- 자동 높이 ---
-        function autoResize() {
+        // 자동 높이 (window에 등록하여 모듈에서 호출 가능하게 함)
+        window.autoResize = function() {
             editor.style.height = 'auto';
             editor.style.height = editor.scrollHeight + 'px';
         }
         editor.addEventListener('input', autoResize);
         window.addEventListener('resize', autoResize);
 
-        // --- Markdown ---
+        // Markdown 
         marked.setOptions({
             highlight: function(code, lang) {
                 const language = highlight.getLanguage(lang) ? lang : 'plaintext';
                 return highlight.highlight(code, { language }).value;
             }
         });
-
-        // --- 렌더링 ---
         function renderContent() {
             let rawText = editor.value;
             const mathBlocks = [];
             const protectedText = rawText.replace(/(\$\$[\s\S]*?\$\$)|(\$[^$\n]*?\$)/g, (match) => {
-                mathBlocks.push(match);
-                return `__MATH_BLOCK_${mathBlocks.length - 1}__`;
+                mathBlocks.push(match); return `__MATH_BLOCK_${mathBlocks.length - 1}__`;
             });
             let html = marked.parse(protectedText);
             html = html.replace(/__MATH_BLOCK_(\d+)__/g, (match, index) => mathBlocks[index]);
             preview.innerHTML = html;
-            renderMathInElement(preview, {
-                delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}],
-                throwOnError: false
-            });
+            renderMathInElement(preview, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
         }
 
-        // --- 뷰어 토글 ---
         let isPreview = false;
         viewToggleBtn.addEventListener('click', () => {
             isPreview = !isPreview;
             if (isPreview) {
-                editor.style.display = 'none';
-                preview.style.display = 'block';
-                viewToggleBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
-                renderContent(); 
+                editor.style.display = 'none'; preview.style.display = 'block';
+                viewToggleBtn.innerHTML = '<i class="fa-solid fa-pen"></i>'; renderContent();
             } else {
-                preview.style.display = 'none';
-                editor.style.display = 'block';
-                viewToggleBtn.innerHTML = '<i class="fa-solid fa-eye"></i>';
-                autoResize();
-                editor.focus();
+                preview.style.display = 'none'; editor.style.display = 'block';
+                viewToggleBtn.innerHTML = '<i class="fa-solid fa-eye"></i>'; autoResize(); editor.focus();
             }
         });
 
-        // --- 일반 기능 ---
         themeBtn.addEventListener('click', () => {
-            if (isCodingMode) return; 
+            if (isCodingMode || isPerfMode) return;
             document.body.classList.toggle('dark-mode');
             const isDark = document.body.classList.contains('dark-mode');
             themeBtn.innerHTML = isDark ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
         });
-
         fontSelector.addEventListener('change', (e) => {
-            document.documentElement.style.setProperty('--editor-font', e.target.value);
-            autoResize();
+            document.documentElement.style.setProperty('--editor-font', e.target.value); autoResize();
         });
 
+        // --- 저장 로직 (Firebase + Local) ---
         let saveTimer;
         editor.addEventListener('input', () => {
             saveStatus.classList.remove('show');
             clearTimeout(saveTimer);
+            
+            // 로컬 스토리지 즉시 저장 (백업용)
+            localStorage.setItem('geminiNoteData', editor.value);
+
+            // 성능 모드면 0.1초, 아니면 0.5초 뒤 클라우드 저장
+            const delay = isPerfMode ? 100 : 500;
             saveTimer = setTimeout(() => {
-                localStorage.setItem('geminiNoteData', editor.value);
-                saveStatus.classList.add('show');
-            }, 500);
+                // 모듈에 정의된 saveToCloud 호출
+                if (window.saveToCloud) {
+                    window.saveToCloud(editor.value);
+                }
+            }, delay);
         });
 
-        menuBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            menuPopup.classList.toggle('active');
-        });
+        menuBtn.addEventListener('click', (e) => { e.stopPropagation(); menuPopup.classList.toggle('active'); });
         document.addEventListener('click', (e) => {
-            if (!menuPopup.contains(e.target) && e.target !== menuBtn && !codingModeBtn.contains(e.target)) {
+            if (!menuPopup.contains(e.target) && e.target !== menuBtn && !codingModeBtn.contains(e.target) && !perfModeBtn.contains(e.target)) {
                 menuPopup.classList.remove('active');
             }
         });
-        
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -404,18 +525,14 @@
             let content = editor.value;
             if (ext === 'html') {
                 renderContent();
-                content = `<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/vs2015.min.css"><title>Note</title></head><body>${preview.innerHTML}</body></html>`;
+                content = `<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/vs2015.min.css"><title>NS Note</title></head><body>${preview.innerHTML}</body></html>`;
             }
             const blob = new Blob([content], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `GeminiNote.${ext}`;
-            a.click();
+            const a = document.createElement('a'); a.href = url; a.download = `NS_Note.${ext}`; a.click();
         }
-        
         document.getElementById('shareBtn').addEventListener('click', async () => {
-            if (navigator.share) await navigator.share({ title: 'Gemini Note', text: editor.value });
+            if (navigator.share) await navigator.share({ title: 'NS Center', text: editor.value });
             else { navigator.clipboard.writeText(editor.value); alert('복사되었습니다!'); }
         });
     </script>
